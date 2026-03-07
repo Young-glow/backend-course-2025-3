@@ -6,7 +6,9 @@ const program = new Command();
 program
   .option("-i, --input <path>", "input file")
   .option("-o, --output <path>", "output file")
-  .option("-d, --display", "display result");
+  .option("-d, --display", "display result")
+  .option("-c, --cylinders", "display cylinders")
+  .option("-m, --mpg <number>", "filter mpg");
 
 program.parse(process.argv);
 
@@ -22,8 +24,25 @@ if (!fs.existsSync(options.input)) {
   process.exit(1);
 }
 
-const data = JSON.parse(fs.readFileSync(options.input, "utf8"));
-const result = JSON.stringify(data, null, 2);
+const raw = fs.readFileSync(options.input, "utf8");
+let data = JSON.parse(raw);
+
+if (options.mpg) {
+  const mpgValue = Number(options.mpg);
+  data = data.filter(car => car.mpg < mpgValue);
+}
+
+const result = data.map(car => {
+  let line = `${car.model}`;
+
+  if (options.cylinders) {
+    line += ` ${car.cyl}`;
+  }
+
+  line += ` ${car.mpg}`;
+
+  return line;
+}).join("\n");
 
 if (options.output) {
   fs.writeFileSync(options.output, result);
