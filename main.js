@@ -4,20 +4,27 @@ import { Command } from "commander";
 const program = new Command();
 
 program
-  .option("-i, --input <path>", "input file")
+  .configureOutput({
+    writeOut: (str) => process.stdout.write(str),
+    writeErr: () => {},
+  })
+  .exitOverride();
+
+program
+  .requiredOption("-i, --input <path>", "input file")
   .option("-o, --output <path>", "output file")
   .option("-d, --display", "display result")
   .option("-c, --cylinders", "display cylinders")
   .option("-m, --mpg <number>", "filter mpg");
 
-program.parse(process.argv);
-
-const options = program.opts();
-
-if (!options.input) {
+try {
+  program.parse(process.argv);
+} catch (err) {
   console.error("Please, specify input file");
   process.exit(1);
 }
+
+const options = program.opts();
 
 if (!fs.existsSync(options.input)) {
   console.error("Cannot find input file");
